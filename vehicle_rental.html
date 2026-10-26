@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vehicle Rental Management System</title>
+<style>
+:root{--bg:#e4e1dd;--card:#f5f3f0;--ink:#2f2a26;--mute:#6f6861;--brown:#7b4a2a;--brown2:#a0653b;--line:#cfc9c2;--ok:#4d6b3a;--bad:#9b2f2f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a2724;--card:#37332f;--ink:#ece8e3;--mute:#a69f97;--brown:#b9794a;--brown2:#d19468;--line:#4c4741;--ok:#8fb374;--bad:#e08a8a}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+header{background:var(--brown);color:#fff;padding:18px 16px;text-align:center}
+header h1{margin:0;font-size:1.25rem;letter-spacing:.5px}
+header p{margin:4px 0 0;font-size:.85rem;opacity:.85}
+main{max-width:960px;margin:0 auto;padding:14px;display:grid;gap:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.4rem;color:var(--brown)}
+.stat span{font-size:.78rem;color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h2{margin:0 0 10px;font-size:1.05rem;color:var(--brown)}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button{background:transparent;border:1px solid var(--brown);color:var(--brown);padding:6px 12px;border-radius:20px;cursor:pointer;font-size:.85rem}
+.tabs button.on{background:var(--brown);color:#fff}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:520px}
+th{background:var(--brown);color:#fff;text-align:left;padding:8px}
+td{padding:8px;border-bottom:1px solid var(--line)}
+.tag{padding:2px 10px;border-radius:12px;font-size:.78rem;font-weight:600}
+.av{background:rgba(77,107,58,.18);color:var(--ok)}
+.rn{background:rgba(155,47,47,.16);color:var(--bad)}
+form{display:grid;gap:8px}
+label{font-size:.82rem;color:var(--mute)}
+input,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:1rem}
+.btn{background:var(--brown);color:#fff;border:0;padding:10px;border-radius:8px;font-size:.95rem;cursor:pointer}
+.btn:hover{background:var(--brown2)}
+.small{padding:5px 10px;font-size:.8rem}
+.two{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:760px){.two{grid-template-columns:1fr 1fr}}
+#msg{padding:10px;border-radius:8px;font-size:.9rem;display:none}
+#msg.ok{display:block;background:rgba(77,107,58,.18);color:var(--ok)}
+#msg.err{display:block;background:rgba(155,47,47,.16);color:var(--bad)}
+.bill{border:2px dashed var(--brown);border-radius:10px;padding:12px;margin-top:10px;display:none}
+.bill h3{margin:0 0 6px;text-align:center;color:var(--brown)}
+.bill div{display:flex;justify-content:space-between;padding:2px 0}
+.bill .tot{border-top:1px solid var(--brown);margin-top:6px;padding-top:6px;font-weight:700;font-size:1.05rem}
+</style>
+</head>
+<body>
+<header><h1>🚗 Vehicle Rental Management System</h1><p>Rent · Return · Bill</p></header>
+<main>
+  <div class="stats">
+    <div class="stat"><b id="sAll">0</b><span>Total</span></div>
+    <div class="stat"><b id="sAv">0</b><span>Available</span></div>
+    <div class="stat"><b id="sRn">0</b><span>Rented</span></div>
+  </div>
+  <div id="msg"></div>
+
+  <div class="card">
+    <h2>Vehicles</h2>
+    <div class="tabs">
+      <button id="tAll" class="on" onclick="setFilter('all')">All</button>
+      <button id="tAv" onclick="setFilter('av')">Available</button>
+      <button id="tRn" onclick="setFilter('rn')">Rented</button>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>₹/Day</th><th>Status</th><th>Details</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <h2>Rent a Vehicle</h2>
+      <form onsubmit="rentVehicle(event)">
+        <div><label>Available vehicle</label><select id="rentId"></select></div>
+        <div><label>Customer name</label><input id="cust" required></div>
+        <div><label>Number of days</label><input id="days" type="number" min="1" value="1"></div>
+        <button class="btn">Rent &amp; Generate Bill</button>
+      </form>
+      <div class="bill" id="bill"></div>
+    </div>
+    <div class="card">
+      <h2>Add New Vehicle</h2>
+      <form onsubmit="addVehicle(event)">
+        <div><label>Vehicle ID</label><input id="nId" type="number" required></div>
+        <div><label>Name</label><input id="nName" required></div>
+        <div><label>Type</label>
+          <select id="nType"><option>Car</option><option>Bike</option><option>Scooter</option><option>Truck</option></select></div>
+        <div><label>Rent per day (₹)</label><input id="nPrice" type="number" required></div>
+        <button class="btn">Add Vehicle</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+// Vehicle list (same predefined data as the C++ project)
+var vehicles = [
+  {id:101,name:"Maruti Swift",type:"Car",price:1500,rented:false,cust:"",days:0},
+  {id:102,name:"Hyundai Creta",type:"Car",price:2500,rented:false,cust:"",days:0},
+  {id:103,name:"Honda Activa",type:"Scooter",price:500,rented:false,cust:"",days:0},
+  {id:104,name:"Royal Enfield",type:"Bike",price:900,rented:false,cust:"",days:0},
+  {id:105,name:"Tata Ace",type:"Truck",price:3000,rented:false,cust:"",days:0}
+];
+var filter = "all";
+
+function $(id){ return document.getElementById(id); }
+function find(id){ for (var i=0;i<vehicles.length;i++) if (vehicles[i].id===id) return vehicles[i]; return null; }
+function say(text, ok){ var m=$("msg"); m.textContent=text; m.className = ok ? "ok" : "err"; }
+function setFilter(f){ filter=f; ["All","Av","Rn"].forEach(function(k){ $("t"+k).className = (k.toLowerCase()===f || (f==="all"&&k==="All"))?"on":""; }); render(); }
+
+function render(){
+  var html="", av=0, rn=0, opts="";
+  vehicles.forEach(function(v){
+    if (v.rented) rn++; else { av++; opts += '<option value="'+v.id+'">'+v.id+' – '+v.name+' (₹'+v.price+'/day)</option>'; }
+    if (filter==="av" && v.rented) return;
+    if (filter==="rn" && !v.rented) return;
+    html += "<tr><td>"+v.id+"</td><td>"+v.name+"</td><td>"+v.type+"</td><td>"+v.price+"</td><td>"
+      + '<span class="tag '+(v.rented?"rn":"av")+'">'+(v.rented?"Rented":"Available")+"</span></td><td>"
+      + (v.rented ? v.cust+" · "+v.days+" day(s) <button class='btn small' onclick='returnVehicle("+v.id+")'>Return</button>" : "—")
+      + "</td></tr>";
+  });
+  $("rows").innerHTML = html || '<tr><td colspan="6">No vehicles to show.</td></tr>';
+  $("rentId").innerHTML = opts || "<option value=''>No vehicle available</option>";
+  $("sAll").textContent=vehicles.length; $("sAv").textContent=av; $("sRn").textContent=rn;
+}
+
+function addVehicle(e){
+  e.preventDefault();
+  var id=parseInt($("nId").value), price=parseFloat($("nPrice").value), name=$("nName").value.trim();
+  if (find(id)) return say("Error: This ID already exists!", false);
+  if (!name) return say("Error: Name cannot be empty!", false);
+  if (!(price>0)) return say("Error: Price must be greater than zero!", false);
+  vehicles.push({id:id,name:name,type:$("nType").value,price:price,rented:false,cust:"",days:0});
+  e.target.reset(); render(); say("Vehicle added successfully!", true);
+}
+
+function rentVehicle(e){
+  e.preventDefault();
+  var v=find(parseInt($("rentId").value)), days=parseInt($("days").value), cust=$("cust").value.trim();
+  if (!v) return say("Error: Invalid vehicle ID!", false);
+  if (v.rented) return say("Sorry, this vehicle is already rented!", false);
+  if (!(days>0)) return say("Error: Days must be greater than zero!", false);
+  if (!cust) return say("Error: Enter customer name!", false);
+  v.rented=true; v.cust=cust; v.days=days;
+  var total = v.price * days;                       // Total Rent = Price/Day x Days
+  $("bill").style.display="block";
+  $("bill").innerHTML = "<h3>RENTAL BILL</h3>"
+    + "<div><span>Customer</span><span>"+cust+"</span></div>"
+    + "<div><span>Vehicle</span><span>"+v.name+"</span></div>"
+    + "<div><span>Rental Days</span><span>"+days+"</span></div>"
+    + "<div><span>Price/Day</span><span>₹"+v.price+"</span></div>"
+    + "<div class='tot'><span>Total Amount</span><span>₹"+total+"</span></div>";
+  $("cust").value=""; $("days").value=1; render(); say("Vehicle rented successfully!", true);
+}
+
+function returnVehicle(id){
+  var v=find(id);
+  if (!v) return say("Error: Invalid vehicle ID!", false);
+  if (!v.rented) return say("This vehicle was not rented!", false);
+  v.rented=false; v.cust=""; v.days=0;
+  render(); say("Vehicle returned. It is available now.", true);
+}
+render();
+</script>
+</body>
+</html>
