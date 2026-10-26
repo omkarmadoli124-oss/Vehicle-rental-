@@ -13,7 +13,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
 header{background:var(--brown);color:#fff;padding:18px 16px;text-align:center}
 header h1{margin:0;font-size:1.25rem;letter-spacing:.5px}
 header p{margin:4px 0 0;font-size:.85rem;opacity:.85}
-main{max-width:960px;margin:0 auto;padding:14px;display:grid;gap:14px}
+main{max-width:960px;margin:0 auto;padding:14px;display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+main>*,.two>*{min-width:0}
+html,body{overflow-x:hidden}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
 .stat b{display:block;font-size:1.4rem;color:var(--brown)}
